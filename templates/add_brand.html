@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Brand</title>
+</head>
+<body>
+    <form method="post" action="/post_brand">
+        <label for="brand">Brand:</label><input id="brand" name="brand" type="text" />
+        <input type="submit" />
+    </form>
+
+    {% for brand in all_brands %}
+        <li>{{ brand.brand }}</li>
+    {% endfor %}
+    
+</body>
+</html>

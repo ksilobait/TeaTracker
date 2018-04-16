@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Tea Type</title>
+</head>
+<body>
+    <form method="post" action="/post_type">
+        <label for="type">Tea type:</label><input id="type" name="type" type="text" />
+        <input type="submit" />
+    </form>
+
+    {% for type in all_types %}
+        <li>{{ type.type }}</li>
+    {% endfor %}
+
+</body>
+</html>
