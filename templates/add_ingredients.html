@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Ingredients</title>
+</head>
+<body>
+    <form method="post" action="/post_ingredients">
+        <label for="ingredient">Ingredient:</label><input id="ingredient" name="ingredient" type="number" />
+        <input type="submit" />
+    </form>
+
+    {% for ingredient in all_ingredients %}
+        <li>{{ ingredient.ingredient }}</li>
+    {% endfor %}
+
+</body>
+</html>

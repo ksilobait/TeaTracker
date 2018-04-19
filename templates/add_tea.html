@@ -15,5 +15,10 @@
         <label for="type_id">type_id:</label><input id="type_id" name="type_id" type="number" />
         <input type="submit" />
     </form>
+
+    {% for tea in all_tea %}
+        <li>{{ tea.brand_id }} - {{ tea.flavor }} - {{ tea.infuse_time }} - {{ tea.is_tea_loose }} - {{ tea.tea_bags }} - {{ tea.weight }} - {{ tea.type_id }}</li>
+    {% endfor %}
+
 </body>
 </html>

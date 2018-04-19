@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingredients For Tea</title>
+</head>
+<body>
+    <form method="post" action="/post_ingredients_for_tea">
+        <label for="tea_id">Tea ID:</label><input id="tea_id" name="tea_id" type="number" />
+        <label for="ingredient_id">Ingredient ID:</label><input id="ingredient_id" name="ingredient_id" type="number" />
+        <input type="submit" />
+    </form>
+
+    {% for ingredient in all_ingredients %}
+        <li>{{ ingredient.tea_id }} - {{ ingredient.ingredient_id }}</li>
+    {% endfor %}
+
+</body>
+</html>

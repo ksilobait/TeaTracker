@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Ratings</title>
+</head>
+<body>
+    <form method="post" action="/post_ratings">
+        <label for="website_id">Website ID:</label><input id="website_id" name="website_id" type="number" />
+        <input type="submit" />
+    </form>
+
+    {% for rating in all_ratings %}
+        <li>{{ ingredient.website_id }}</li>
+    {% endfor %}
+
+</body>
+</html>
