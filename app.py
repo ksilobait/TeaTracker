@@ -1,10 +1,20 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, redirect, url_for, render_template
+from flask_table import Table, Col
+
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
+
+from datetime import date
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/tea'
 db = SQLAlchemy(app)
+
+migrate = Migrate(app, db)
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 
 @app.route('/')
@@ -12,6 +22,7 @@ def index():
     return render_template('index.html')
 
 
+# THE BRANDS
 class Brands(db.Model):
     brand_id = db.Column(db.INTEGER, primary_key=True)
     brand = db.Column(db.VARCHAR(100))
@@ -35,6 +46,7 @@ def post_brand():
     return redirect(url_for('add_brand'))
 
 
+# THE TYPE
 class Type(db.Model):
     type_id = db.Column(db.INTEGER, primary_key=True)
     type = db.Column(db.VARCHAR(50))
@@ -58,34 +70,12 @@ def post_type():
     return redirect(url_for('add_type'))
 
 
-class Profile(db.Model):
-    tea_id = db.Column(db.INTEGER, primary_key=True)
-    taste = db.Column(db.VARCHAR(300))
-    rating = db.Column(db.INTEGER)
-
-    def __init__(self, tea_id, taste, rating):
-        self.tea_id = tea_id
-        self.taste = taste
-        self.rating = rating
-
-
-@app.route('/add_profile', methods=['GET'])
-def add_profile():
-    all_profiles = Profile.query.all()
-    return render_template('add_profile.html', all_profiles=all_profiles)
-
-
-@app.route('/post_profile', methods=['POST'])
-def post_profile():
-    the_profile = Profile(request.form['tea_id'], request.form['taste'], request.form['rating'])
-    db.session.add(the_profile)
-    db.session.commit()
-    return redirect(url_for('add_profile'))
-
-
+# THE INGREDIENTS //TODO
 class Ingredients(db.Model):
     ingredient_id = db.Column(db.INTEGER, primary_key=True)
     ingredient = db.Column(db.VARCHAR(300))
+
+    ift_reference = db.relationship('IngredientsForTea')
 
     def __init__(self, ingredient):
         self.ingredient = ingredient
@@ -105,9 +95,78 @@ def post_ingredients():
     return redirect(url_for('add_ingredients'))
 
 
-class IngredientsForTea(db.Model):
+# THE TEA # TODO
+class Tea(db.Model):
     tea_id = db.Column(db.INTEGER, primary_key=True)
-    ingredient_id = db.Column(db.INTEGER, primary_key=True)
+    brand_id = db.Column(db.INTEGER, db.ForeignKey(Brands.brand_id))
+    flavor = db.Column(db.VARCHAR(300))
+    infuse_time = db.Column(db.INTEGER)
+    is_tea_loose = db.Column(db.VARCHAR(40))
+    tea_bags = db.Column(db.INTEGER)
+    weight = db.Column(db.INTEGER)
+    type_id = db.Column(db.INTEGER, db.ForeignKey(Type.type_id))
+    taste = db.Column(db.VARCHAR(300))
+    rating = db.Column(db.INTEGER)
+
+    inst_ref = db.relationship('Instances')
+    ift_reference = db.relationship('IngredientsForTea')
+
+    def __init__(self, brand_id, flavor, infuse_time, is_tea_loose, tea_bags, weight, type_id, taste, rating):
+        self.brand_id = brand_id
+        self.flavor = flavor
+        self.infuse_time = infuse_time
+        self.is_tea_loose = is_tea_loose
+        self.tea_bags = tea_bags
+        self.weight = weight
+        self.type_id = type_id
+        self.taste = taste
+        self.rating = rating
+
+
+class TeaTable(Table):
+    brand = Col('Brand')
+    flavor = Col('Flavor')
+    infuse_time = Col('Infuse time (mins)')
+    is_tea_loose = Col('Loose tea?')
+    tea_bags = Col('Tea bags')
+    weight = Col('Weight')
+    type = Col('Type')
+    taste = Col('Taste')
+    rating = Col('Rating')
+
+
+@app.route('/add_tea', methods=['GET'])
+def add_tea():
+    all_brands = Brands.query.all()
+    all_types = Type.query.all()
+
+    all_tea = Tea.query.join(Brands, Tea.brand_id == Brands.brand_id).join(Type, Type.type_id == Tea.type_id).add_columns(Brands.brand, Tea.flavor, Tea.infuse_time, Tea.is_tea_loose, Tea.tea_bags, Tea.weight, Type.type, Tea.taste, Tea.rating)
+
+    table = TeaTable(all_tea)
+    table.border = True
+    return render_template('add_tea.html', all_tea=all_tea, all_brands=all_brands, all_types=all_types, table=table)
+
+
+@app.route('/post_tea', methods=['POST'])
+def post_tea():
+    tea = Tea(request.form['brand_id'], request.form['flavor'], request.form['infuse_time'],
+              request.form['is_tea_loose'], request.form['tea_bags'], request.form['weight'], request.form['type_id'],
+              request.form['taste'], request.form['rating'])
+
+    db.session.add(tea)
+    db.session.commit()
+    return redirect(url_for('add_tea'))
+
+
+class IFTTable(Table):
+    ingredient = Col('ingredient')
+    taste = Col('taste')
+
+
+# THE INGREDIENTS FOR TEA //TODO
+class IngredientsForTea(db.Model):
+    tea_id = db.Column(db.INTEGER, db.ForeignKey(Tea.tea_id), primary_key=True)
+    ingredient_id = db.Column(db.INTEGER, db.ForeignKey(Ingredients.ingredient_id), primary_key=True)
 
     def __init__(self, tea_id, ingredient_id):
         self.tea_id = tea_id
@@ -116,8 +175,16 @@ class IngredientsForTea(db.Model):
 
 @app.route('/add_ingredients_for_tea', methods=['GET'])
 def add_ingredients_for_tea():
-    all_ingredients = IngredientsForTea.query.all()
-    return render_template('add_ingredients_for_tea.html', all_ingredients=all_ingredients)
+    all_tea = Tea.query.all()
+    all_ingredients = Ingredients.query.all()
+
+    all_ift = IngredientsForTea.query.join(Tea, IngredientsForTea.tea_id == Tea.tea_id)\
+        .join(Ingredients, Ingredients.ingredient_id == IngredientsForTea.ingredient_id)\
+        .add_columns(Ingredients.ingredient, Tea.taste)
+    table = IFTTable(all_ift)
+    table.border = True
+
+    return render_template('add_ingredients_for_tea.html', all_ingredients=all_ingredients, all_tea=all_tea, table=table)
 
 
 @app.route('/post_ingredients_for_tea', methods=['POST'])
@@ -128,12 +195,13 @@ def post_ingredients_for_tea():
     return redirect(url_for('add_ingredients_for_tea'))
 
 
+# THE INSTANCES
 class Instances(db.Model):
     instance_id = db.Column(db.INTEGER, primary_key=True)
-    best_before = db.Column(db.TIMESTAMP)
+    best_before = db.Column(db.DATE)
     left_weight = db.Column(db.INTEGER)
     left_bags = db.Column(db.INTEGER)
-    tea_id = db.Column(db.INTEGER)
+    tea_id = db.Column(db.INTEGER, db.ForeignKey(Tea.tea_id))
 
     def __init__(self, best_before, left_weight, left_bags, tea_id):
         self.best_before = best_before
@@ -142,10 +210,30 @@ class Instances(db.Model):
         self.tea_id = tea_id
 
 
+class InstancesTable(Table):
+    taste = Col('tea taste')
+    best_before = Col('best_before')
+    left_weight = Col('left_weight')
+    left_bags = Col('left_bags')
+
+
 @app.route('/add_instances', methods=['GET'])
 def add_instances():
-    all_instances = Instances.query.all()
-    return render_template('add_instances.html', all_instances=all_instances)
+    some_instances = Instances.query.join(Tea, Instances.tea_id == Tea.tea_id)\
+        .filter(((Instances.left_weight > 0) | (Instances.left_bags > 0)) & (Instances.best_before >= date.today()))\
+        .add_columns(Tea.taste, Instances.best_before, Instances.left_weight, Instances.left_bags)
+    table = InstancesTable(some_instances)
+    table.border = True
+
+    no_instances = Instances.query.join(Tea, Instances.tea_id == Tea.tea_id)\
+        .filter(~(((Instances.left_weight > 0) | (Instances.left_bags > 0)) & (Instances.best_before >= date.today())))\
+        .add_columns(Tea.taste, Instances.best_before, Instances.left_weight, Instances.left_bags)
+    table2 = InstancesTable(no_instances)
+    table2.border = True
+
+    all_tea = Tea.query.all()
+
+    return render_template('add_instances.html', table=table, table2=table2, all_tea=all_tea)
 
 
 @app.route('/post_instances', methods=['POST'])
@@ -157,87 +245,7 @@ def post_instances():
     return redirect(url_for('add_instances'))
 
 
-class RatingsForTea(db.Model):
-    tea_id = db.Column(db.INTEGER, primary_key=True)
-    website_id = db.Column(db.INTEGER, primary_key=True)
-
-    def __init__(self, tea_id, website_id):
-        self.tea_id = tea_id
-        self.website_id = website_id
-
-
-@app.route('/add_ratings_for_tea', methods=['GET'])
-def add_ratings_for_tea():
-    all_ratings = RatingsForTea.query.all()
-    return render_template('add_ratings_for_tea.html', all_ratings=all_ratings)
-
-
-@app.route('/post_ratings_for_tea', methods=['POST'])
-def post_ratings_for_tea():
-    the_ratings = RatingsForTea(request.form['tea_id'], request.form['website_id'])
-    db.session.add(the_ratings)
-    db.session.commit()
-    return redirect(url_for('add_ratings_for_tea'))
-
-
-class Ratings(db.Model):
-    website_id = db.Column(db.INTEGER, primary_key=True)
-    website_name = db.Column(db.VARCHAR(100))
-
-    def __init__(self, website_name):
-        self.website_name = website_name
-
-
-@app.route('/add_ratings', methods=['GET'])
-def add_ratings():
-    all_ratings = Ratings.query.all()
-    return render_template('add_ratings.html', all_ratings=all_ratings)
-
-
-@app.route('/post_ratings', methods=['POST'])
-def post_ratings():
-    the_ratings = Ratings(request.form['website_name'])
-    db.session.add(the_ratings)
-    db.session.commit()
-    return redirect(url_for('add_ratings'))
-
-
-class Tea(db.Model):
-    tea_id = db.Column(db.INTEGER, primary_key=True)
-    brand_id = db.Column(db.INTEGER, db.ForeignKey(Brands.brand_id))
-    flavor = db.Column(db.VARCHAR(300))
-    infuse_time = db.Column(db.TIME)
-    is_tea_loose = db.Column(db.VARCHAR(40))
-    tea_bags = db.Column(db.INTEGER)
-    weight = db.Column(db.INTEGER)
-    type_id = db.Column(db.INTEGER, db.ForeignKey(Type.type_id))
-
-    def __init__(self, brand_id, flavor, infuse_time, is_tea_loose, tea_bags, weight, type_id):
-        self.brand_id = brand_id
-        self.flavor = flavor
-        self.infuse_time = infuse_time
-        self.is_tea_loose = is_tea_loose
-        self.tea_bags = tea_bags
-        self.weight = weight
-        self.type_id = type_id
-
-
-@app.route('/add_tea', methods=['GET'])
-def add_tea():
-    all_tea = Tea.query.all()
-    return render_template('add_tea.html', all_tea=all_tea)
-
-
-@app.route('/post_tea', methods=['POST'])
-def post_tea():
-    tea = Tea(request.form['brand_id'], request.form['flavor'], request.form['infuse_time'],
-              request.form['is_tea_loose'], request.form['tea_bags'], request.form['weight'], request.form['type_id'])
-    db.session.add(tea)
-    db.session.commit()
-    return redirect(url_for('add_tea'))
-
-
 if __name__ == '__main__':
-    app.run()
+    manager.run()
 
 db.create_all()

@@ -6,16 +6,21 @@
 </head>
 <body>
     <form method="post" action="/post_instances">
-        <label for="best_before">best_before:</label><input id="best_before" name="best_before" type="time" />
-        <label for="left_weight">left_weight:</label><input id="left_weight" name="left_weight" type="number" />
-        <label for="left_bags">left_bags:</label><input id="left_bags" name="left_bags" type="number" />
-        <label for="tea_id">tea_id:</label><input id="tea_id" name="tea_id" type="number" />
+        <label for="tea_id">Tea:</label> <select name="tea_id">
+            {% for tea in all_tea %}
+                <option value= "{{ tea.tea_id }}" SELECTED>{{ tea.flavor }}</option>
+            {% endfor %}
+        </select> <br />
+
+        <label for="best_before">best_before:</label><input id="best_before" name="best_before" type="date" /> <br />
+        <label for="left_weight">left_weight:</label><input id="left_weight" name="left_weight" type="number" /> <br />
+        <label for="left_bags">left_bags:</label><input id="left_bags" name="left_bags" type="number" /> <br />
         <input type="submit" />
     </form>
 
-    {% for instance in all_instances %}
-        <li>{{ instance.best_before }} - {{ instance.left_weight }} - {{ instance.left_bags }} - {{ instance.tea_id }}</li>
-    {% endfor %}
+    {{ table }}
+
+    {{ table2 }}
 
 </body>
 </html>
