@@ -1,3 +1,5 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,22 +7,44 @@
     <title>Ingredients For Tea</title>
 </head>
 <body>
-    <form method="post" action="/post_ingredients_for_tea">
-        <label for="tea_id">Tea:</label> <select name="tea_id">
-            {% for tea in all_tea %}
-                <option value= "{{ tea.tea_id }}" SELECTED>{{ tea.flavor }}</option>
-            {% endfor %}
-        </select> <br />
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Add Ingredients For Tea</li>
+    </ol>
 
-        <label for="ingredient_id">Ingredient:</label> <select name="ingredient_id">
-            {% for ingredient in all_ingredients %}
-                <option value= "{{ ingredient.ingredient_id }}" SELECTED>{{ ingredient.ingredient }}</option>
-            {% endfor %}
-        </select> <br />
-        <input type="submit" />
+    <form method="post" action="/post_ingredients_for_tea">
+        <div class="input-group-text" style="width: fit-content">
+            <label for="tea_id">Tea:</label>
+            <select class="form-control" name="tea_id" style="width: auto;">
+                {% for tea in all_tea %}
+                    <option value= "{{ tea.tea_id }}" SELECTED>{{ tea.flavor }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="ingredient_id">Ingredient:</label>
+            <select class="form-control" name="ingredient_id" style="width: auto;">
+                {% for ingredient in all_ingredients %}
+                    <option value= "{{ ingredient.ingredient_id }}" SELECTED>{{ ingredient.ingredient }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
     </form>
 
-    {{ table }}
+    <div class="table">
+        {{ table }}
+    </div>
+
 
 </body>
 </html>
+{% endblock %}
+
+
+{% block styles %}
+{{super()}}
+    <link rel="stylesheet" href="{{url_for('.static', filename='bootstrap2.min.css')}}">
+{% endblock %}

@@ -1,32 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add tea</title>
-</head>
-<body>
+{% extends "bootstrap/base.html" %}
+{% block content %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Add tea</title>
+    </head>
+    <body>
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Add Tea</li>
+    </ol>
+
+
     <form method="post" action="/post_tea">
-        <label for="brand_id">Brand:</label> <select name="brand_id">
-            {% for brand in all_brands %}
-                <option value= "{{ brand.brand_id }}" SELECTED>{{ brand.brand }}</option>
-            {% endfor %}
-        </select> <br />
-        <label for="flavor">flavor:</label><input id="flavor" name="flavor" type="text" /> <br />
-        <label for="infuse_time">Infuse time (in minutes):</label><input id="infuse_time" name="infuse_time" type="number" /> <br />
-        <label for="is_tea_loose">is_tea_loose:</label><input id="is_tea_loose" name="is_tea_loose" type="text" /> <br />
-        <label for="tea_bags">tea_bags:</label><input id="tea_bags" name="tea_bags" type="number" /> <br />
-        <label for="weight">weight:</label><input id="weight" name="weight" type="number" /> <br />
-        <label for="type_id">Type:</label> <select name="type_id">
-            {% for type in all_types %}
-                <option value= "{{ type.type_id }}" SELECTED>{{ type.type }}</option>
-            {% endfor %}
-        </select> <br />
-        <label for="taste">taste:</label><input id="taste" name="taste" type="text" /> <br />
-        <label for="rating">rating:</label><input id="rating" name="rating" type="number" /> <br />
-        <input type="submit" />
+        <div class="form-group">
+            <div class="custom-control custom-radio">
+                <input type="radio" id="looseTeaRadio" value="Loose Tea" name="theLooseTeaRadio" class="custom-control-input" checked="">
+                <label class="custom-control-label" for="looseTeaRadio">Loose Tea</label>
+            </div>
+            <div class="custom-control custom-radio">
+                <input type="radio" id="teaBagsRadio" value="Tea Bags" name="theLooseTeaRadio" class="custom-control-input">
+                <label class="custom-control-label" for="teaBagsRadio">Tea Bags</label>
+            </div>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="brand_id">Brand:</label>
+            <select class="form-control" name="brand_id" style="width: auto;">
+                {% for brand in all_brands %}
+                    <option value="{{ brand.brand_id }}" SELECTED>{{ brand.brand }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="flavor">flavor:</label>
+            <input class="form-control" id="flavor" name="flavor" type="text" style="width: auto;"/> <br/>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="infuse_time">Infuse time (in minutes):</label>
+            <input class="form-control" id="infuse_time" name="infuse_time" type="number" style="width: auto;"/> <br/>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="tea_bags">tea_bags:</label>
+            <input class="form-control" id="tea_bags" name="tea_bags" type="number" style="width: auto;"/> <br/>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="weight">weight:</label>
+            <input class="form-control" id="weight" name="weight" type="number" style="width: auto;"/> <br/>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="type_id">Type:</label>
+            <select class="form-control" name="type_id" style="width: auto;">
+                {% for type in all_types %}
+                    <option value="{{ type.type_id }}" SELECTED>{{ type.type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="taste">taste:</label>
+            <input class="form-control" id="taste" name="taste" type="text" style="width: auto;"/> <br/>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="rating">rating:</label>
+            <input class="form-control" id="rating" name="rating" type="number" style="width: auto;"/> <br/>
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
     </form>
 
-    {{ table }}
+    <div class="table">
+        {{ table }}
+    </div>
 
-</body>
-</html>
+    </body>
+    </html>
+{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('.static', filename='bootstrap2.min.css') }}">
+{% endblock %}

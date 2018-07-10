@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, redirect, url_for, render_template
 from flask_table import Table, Col
+from flask_bootstrap import Bootstrap
 
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
@@ -10,6 +11,7 @@ from datetime import date
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/tea'
+Bootstrap(app)
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
@@ -41,7 +43,15 @@ def add_brand():
 @app.route('/post_brand', methods=['POST'])
 def post_brand():
     brand = Brands(request.form['brand'])
-    db.session.add(brand)
+    if brand.brand:
+        db.session.add(brand)
+        db.session.commit()
+    return redirect(url_for('add_brand'))
+
+
+@app.route('/delete_brand/<string:id>', methods=['POST'])
+def delete_brand(id):
+    Brands.query.filter_by(brand_id=id).delete()
     db.session.commit()
     return redirect(url_for('add_brand'))
 
@@ -65,12 +75,20 @@ def add_type():
 @app.route('/post_type', methods=['POST'])
 def post_type():
     the_type = Type(request.form['type'])
-    db.session.add(the_type)
+    if the_type.type:
+        db.session.add(the_type)
+        db.session.commit()
+    return redirect(url_for('add_type'))
+
+
+@app.route('/delete_type/<string:id>', methods=['POST'])
+def delete_type(id):
+    Type.query.filter_by(type_id=id).delete()
     db.session.commit()
     return redirect(url_for('add_type'))
 
 
-# THE INGREDIENTS //TODO
+# THE INGREDIENTS
 class Ingredients(db.Model):
     ingredient_id = db.Column(db.INTEGER, primary_key=True)
     ingredient = db.Column(db.VARCHAR(300))
@@ -90,12 +108,20 @@ def add_ingredients():
 @app.route('/post_ingredients', methods=['POST'])
 def post_ingredients():
     the_ingredients = Ingredients(request.form['ingredient'])
-    db.session.add(the_ingredients)
+    if the_ingredients.ingredient:
+        db.session.add(the_ingredients)
+        db.session.commit()
+    return redirect(url_for('add_ingredients'))
+
+
+@app.route('/delete_ingredient/<string:id>', methods=['POST'])
+def delete_ingredient(id):
+    Ingredients.query.filter_by(ingredient_id=id).delete()
     db.session.commit()
     return redirect(url_for('add_ingredients'))
 
 
-# THE TEA # TODO
+# THE TEA
 class Tea(db.Model):
     tea_id = db.Column(db.INTEGER, primary_key=True)
     brand_id = db.Column(db.INTEGER, db.ForeignKey(Brands.brand_id))
@@ -127,7 +153,7 @@ class TeaTable(Table):
     brand = Col('Brand')
     flavor = Col('Flavor')
     infuse_time = Col('Infuse time (mins)')
-    is_tea_loose = Col('Loose tea?')
+    is_tea_loose = Col('Loose or bagged tea')
     tea_bags = Col('Tea bags')
     weight = Col('Weight')
     type = Col('Type')
@@ -140,7 +166,8 @@ def add_tea():
     all_brands = Brands.query.all()
     all_types = Type.query.all()
 
-    all_tea = Tea.query.join(Brands, Tea.brand_id == Brands.brand_id).join(Type, Type.type_id == Tea.type_id).add_columns(Brands.brand, Tea.flavor, Tea.infuse_time, Tea.is_tea_loose, Tea.tea_bags, Tea.weight, Type.type, Tea.taste, Tea.rating)
+    all_tea = Tea.query.join(Brands, Tea.brand_id == Brands.brand_id)\
+        .join(Type, Type.type_id == Tea.type_id).add_columns(Brands.brand, Tea.flavor, Tea.infuse_time, Tea.is_tea_loose, Tea.tea_bags, Tea.weight, Type.type, Tea.taste, Tea.rating)
 
     table = TeaTable(all_tea)
     table.border = True
@@ -149,12 +176,12 @@ def add_tea():
 
 @app.route('/post_tea', methods=['POST'])
 def post_tea():
-    tea = Tea(request.form['brand_id'], request.form['flavor'], request.form['infuse_time'],
-              request.form['is_tea_loose'], request.form['tea_bags'], request.form['weight'], request.form['type_id'],
-              request.form['taste'], request.form['rating'])
-
-    db.session.add(tea)
-    db.session.commit()
+    tea = Tea(request.form['brand_id'], request.form['flavor'], int(request.form['infuse_time']),
+              request.form['theLooseTeaRadio'], int(request.form['tea_bags']), int(request.form['weight']),
+              request.form['type_id'], request.form['taste'], int(request.form['rating']))
+    if tea.flavor and tea.infuse_time >= 0 and tea.is_tea_loose and tea.tea_bags >= 0 and tea.weight >= 0 and tea.taste and tea.rating:
+        db.session.add(tea)
+        db.session.commit()
     return redirect(url_for('add_tea'))
 
 
@@ -163,7 +190,7 @@ class IFTTable(Table):
     taste = Col('taste')
 
 
-# THE INGREDIENTS FOR TEA //TODO
+# THE INGREDIENTS FOR TEA
 class IngredientsForTea(db.Model):
     tea_id = db.Column(db.INTEGER, db.ForeignKey(Tea.tea_id), primary_key=True)
     ingredient_id = db.Column(db.INTEGER, db.ForeignKey(Ingredients.ingredient_id), primary_key=True)
@@ -178,13 +205,14 @@ def add_ingredients_for_tea():
     all_tea = Tea.query.all()
     all_ingredients = Ingredients.query.all()
 
-    all_ift = IngredientsForTea.query.join(Tea, IngredientsForTea.tea_id == Tea.tea_id)\
-        .join(Ingredients, Ingredients.ingredient_id == IngredientsForTea.ingredient_id)\
+    all_ift = IngredientsForTea.query.join(Tea, IngredientsForTea.tea_id == Tea.tea_id) \
+        .join(Ingredients, Ingredients.ingredient_id == IngredientsForTea.ingredient_id) \
         .add_columns(Ingredients.ingredient, Tea.taste)
     table = IFTTable(all_ift)
     table.border = True
 
-    return render_template('add_ingredients_for_tea.html', all_ingredients=all_ingredients, all_tea=all_tea, table=table)
+    return render_template('add_ingredients_for_tea.html', all_ingredients=all_ingredients, all_tea=all_tea,
+                           table=table)
 
 
 @app.route('/post_ingredients_for_tea', methods=['POST'])
@@ -219,29 +247,30 @@ class InstancesTable(Table):
 
 @app.route('/add_instances', methods=['GET'])
 def add_instances():
-    some_instances = Instances.query.join(Tea, Instances.tea_id == Tea.tea_id)\
-        .filter(((Instances.left_weight > 0) | (Instances.left_bags > 0)) & (Instances.best_before >= date.today()))\
+    some_instances = Instances.query.join(Tea, Instances.tea_id == Tea.tea_id) \
+        .filter(((Instances.left_weight > 0) | (Instances.left_bags > 0)) & (Instances.best_before >= date.today())) \
         .add_columns(Tea.taste, Instances.best_before, Instances.left_weight, Instances.left_bags)
     table = InstancesTable(some_instances)
     table.border = True
 
-    no_instances = Instances.query.join(Tea, Instances.tea_id == Tea.tea_id)\
-        .filter(~(((Instances.left_weight > 0) | (Instances.left_bags > 0)) & (Instances.best_before >= date.today())))\
-        .add_columns(Tea.taste, Instances.best_before, Instances.left_weight, Instances.left_bags)
-    table2 = InstancesTable(no_instances)
-    table2.border = True
+    # no_instances = Instances.query.join(Tea, Instances.tea_id == Tea.tea_id)\
+    #    .filter(~(((Instances.left_weight > 0) | (Instances.left_bags > 0)) & (Instances.best_before >= date.today())))\
+    #    .add_columns(Tea.taste, Instances.best_before, Instances.left_weight, Instances.left_bags)
+    # table2 = InstancesTable(no_instances)
+    # table2.border = True
 
     all_tea = Tea.query.all()
 
-    return render_template('add_instances.html', table=table, table2=table2, all_tea=all_tea)
+    return render_template('add_instances.html', table=table, all_tea=all_tea)
 
 
 @app.route('/post_instances', methods=['POST'])
 def post_instances():
-    the_instances = Instances(request.form['best_before'], request.form['left_weight'],
-                              request.form['left_bags'], request.form['tea_id'])
-    db.session.add(the_instances)
-    db.session.commit()
+    the_instances = Instances(request.form['best_before'], int(request.form['left_weight']),
+                              int(request.form['left_bags']), request.form['tea_id'])
+    if the_instances.best_before and the_instances.left_weight >= 0 and the_instances.left_bags >= 0:
+        db.session.add(the_instances)
+        db.session.commit()
     return redirect(url_for('add_instances'))
 
 

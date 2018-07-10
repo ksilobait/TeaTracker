@@ -1,3 +1,5 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,28 +7,24 @@
     <title>Tea Tracker</title>
 </head>
 <body>
-    <form action="add_tea" method="get">
-        <input type="submit" value="Add Tea" />
-    </form>
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Home</li>
+    </ol>
 
-    <form action="add_brand" method="get">
-        <input type="submit" value="Add Brand" />
-    </form>
+    <div class="list-group" style="width: fit-content">
+        <a class="btn btn-primary" href="/add_tea">Add Tea</a>
+        <a class="btn btn-secondary" href="/add_brand">Add Brand</a>
+        <a class="btn btn-secondary" href="/add_type">Add Tea Type</a>
+        <a class="btn btn-secondary" href="/add_ingredients">Add Ingredients</a>
+        <a class="btn btn-secondary" href="/add_ingredients_for_tea">Add Ingredients For Tea</a>
+        <a class="btn btn-secondary" href="/add_instances">Add Instances</a>
+    </div>
 
-    <form action="add_type" method="get">
-        <input type="submit" value="Add Tea Type" />
-    </form>
-
-    <form action="add_ingredients" method="get">
-        <input type="submit" value="Add Ingredients" />
-    </form>
-
-    <form action="add_ingredients_for_tea" method="get">
-        <input type="submit" value="Add Ingredients For Tea" />
-    </form>
-
-    <form action="add_instances" method="get">
-        <input type="submit" value="Add Instances" />
-    </form>
 </body>
 </html>
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+    <link rel="stylesheet" href="{{url_for('.static', filename='bootstrap2.min.css')}}">
+{% endblock %}

@@ -1,3 +1,5 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,22 +7,47 @@
     <title>Add Tea Instances</title>
 </head>
 <body>
-    <form method="post" action="/post_instances">
-        <label for="tea_id">Tea:</label> <select name="tea_id">
-            {% for tea in all_tea %}
-                <option value= "{{ tea.tea_id }}" SELECTED>{{ tea.flavor }}</option>
-            {% endfor %}
-        </select> <br />
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Add Instances</li>
+    </ol>
 
-        <label for="best_before">best_before:</label><input id="best_before" name="best_before" type="date" /> <br />
-        <label for="left_weight">left_weight:</label><input id="left_weight" name="left_weight" type="number" /> <br />
-        <label for="left_bags">left_bags:</label><input id="left_bags" name="left_bags" type="number" /> <br />
-        <input type="submit" />
+    <form method="post" action="/post_instances">
+        <div class="input-group-text" style="width: fit-content">
+            <label for="tea_id">Tea:</label>
+            <select class="form-control" name="tea_id" style="width: auto;">
+                {% for tea in all_tea %}
+                    <option value= "{{ tea.tea_id }}" SELECTED>{{ tea.flavor }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="best_before">best_before:</label>
+            <input class="form-control" id="best_before" name="best_before" type="date" style="width: auto;"/> <br />
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="left_weight">left_weight:</label>
+            <input class="form-control" id="left_weight" name="left_weight" type="number" style="width: auto;"/> <br />
+        </div>
+
+        <div class="input-group-text" style="width: fit-content">
+            <label for="left_bags">left_bags:</label>
+            <input class="form-control" id="left_bags" name="left_bags" type="number" style="width: auto;"/> <br />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 
-    {{ table }}
-
-    {{ table2 }}
-
+    <div class="table">
+        {{ table }}
+    </div>
 </body>
 </html>
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+    <link rel="stylesheet" href="{{url_for('.static', filename='bootstrap2.min.css')}}">
+{% endblock %}

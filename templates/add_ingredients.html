@@ -1,3 +1,5 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,14 +7,34 @@
     <title>Add Ingredients</title>
 </head>
 <body>
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Add Ingredients</li>
+    </ol>
+
     <form method="post" action="/post_ingredients">
-        <label for="ingredient">Ingredient:</label><input id="ingredient" name="ingredient" type="text" />
-        <input type="submit" />
+        <div class="input-group-text">
+            <label for="ingredient">Ingredient:</label>
+            <input id="ingredient" name="ingredient" type="text" style="width: auto;"/>
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
     </form>
 
     {% for ingredient in all_ingredients %}
-        <li>{{ ingredient.ingredient }}</li>
+        <li>
+            {{ ingredient.ingredient }}
+            <form action="{{ url_for('delete_ingredient', id=ingredient.ingredient_id) }}" method="post">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="submit" value="Delete" class="btn btn-danger">
+            </form>
+        </li>
     {% endfor %}
 
 </body>
 </html>
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+    <link rel="stylesheet" href="{{url_for('.static', filename='bootstrap2.min.css')}}">
+{% endblock %}

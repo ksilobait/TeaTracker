@@ -1,3 +1,5 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,14 +7,34 @@
     <title>Add Tea Type</title>
 </head>
 <body>
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Add Type</li>
+    </ol>
+
     <form method="post" action="/post_type">
-        <label for="type">Tea type:</label><input id="type" name="type" type="text" />
-        <input type="submit" />
+        <div class="input-group-text">
+            <label for="type">Tea type:</label>
+            <input class="form-control" id="type" name="type" type="text" style="width: auto;"/>
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
     </form>
 
     {% for type in all_types %}
-        <li>{{ type.type }}</li>
+        <li>
+            {{ type.type }}
+            <form action="{{ url_for('delete_type', id=type.type_id) }}" method="post">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="submit" value="Delete" class="btn btn-danger">
+            </form>
+        </li>
     {% endfor %}
 
 </body>
 </html>
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+    <link rel="stylesheet" href="{{url_for('.static', filename='bootstrap2.min.css')}}">
+{% endblock %}
