@@ -1,5 +1,3 @@
-Welcome to the TeaTracker wiki!
-
 How to launch the website:
 1. Launch project (e.g. in PyCharm)
 2. Install these packages in venv if needed:
